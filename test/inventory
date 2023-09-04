@@ -1,0 +1,15 @@
+192.168.56.104
+192.168.56.11 
+192.168.56.21
+192.168.56.22
+ansible
+kube-control1
+kube-node1
+kube-node2
+
+[nfs-client]
+kube-node1
+kube-node2
+
+[nfs-server]
+kube-control1

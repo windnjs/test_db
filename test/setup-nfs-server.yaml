@@ -1,0 +1,33 @@
+---
+- name: Setup NFS Server
+  hosts: 192.168.56.11
+  tasks:
+    - name: sudo apt update
+      apt:
+        update_cache: yes
+
+    - name: sudo apt install nfs-kernel-server
+      apt:
+        name: nfs-kernel-server
+        state: present
+
+    - name: sudo mkdir /dynamic
+      file:
+        path: /dynamic
+        state: directory
+
+    - name: configure nfs exports
+      lineinfile:
+        path: /etc/exports
+        line: '/dynamic *(rw,sync,no_subtree_check,no_root_squash)'
+        insertafter: EOF
+
+    - name: sudo exportfs -r
+      command: exportfs -r
+
+    - name: enable and start nfs server
+      service:
+        name: nfs-kernel-server
+        enabled: yes
+        state: started
+

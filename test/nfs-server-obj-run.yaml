@@ -1,0 +1,55 @@
+---
+- name: nfs-server k8s obj run
+  hosts: 192.168.56.21
+  gather_facts: no
+  tasks:
+    - name: sudo apt update
+      apt:
+        update_cache: yes
+
+    - name: sudo apt install nfs-common 
+      apt:
+        name: nfs-common
+        state: present
+
+    - name: sudo apt install pip
+      apt:
+        name: pip
+        state: present
+
+    - name: sudo pip install openshift
+      ansible.builtin.pip:
+        name: openshift
+        state: present
+
+    - name: git clone
+      git:
+        repo: https://github.com/windnjs/test.git
+        dest: /home/vagrant/nfs
+      ignore_errors: yes
+
+    - name: update deployment yaml file
+      ansible.builtin.replace:
+        path: /home/vagrant/nfs/deployment.yaml
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - { regexp: 'value: 10.3.243.101', replace: 'value: 192.168.56.11' }
+        - { regexp: 'value: /ifs/kubernetes', replace: 'value: /dynamic' }
+        - { regexp: 'server: 10.3.243.101', replace: 'server: 192.168.56.11' }
+        - { regexp: 'path: /ifs/kubernetes', replace: 'path: /dynamic' }
+
+    - name: kubectl create -f rbac.yaml
+      k8s:
+        state: present
+        src: /home/vagrant/nfs/rbac.yaml
+
+    - name: kubectl create -f deployment.yaml
+      k8s:
+        state: present
+        src: /home/vagrant/nfs/deployment.yaml
+
+    - name: kubectl create -f class.yaml
+      k8s:
+        state: present
+        src: /home/vagrant/nfs/class.yaml
